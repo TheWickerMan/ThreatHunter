@@ -11,6 +11,7 @@ parser = argparse.ArgumentParser(description="----------ThreatHunter-Help-Page--
 #Inline Arguments
 parser.add_argument("-new", help="Enter The Target Organisation's Name. \n")
 parser.add_argument("-load", help="Specify The Project File To Load. \n")
+parser.add_argument("-settings", help="Modify the application settings. \n", action="store_true")
 
 #Allocates the method to call the arguments to 'args'
 args = parser.parse_args()
@@ -18,6 +19,31 @@ args = parser.parse_args()
 class Main():
     BaseInformation = {"OrganisationName":"", "LogFile":"", "API_Keys_Directory":"./Modules/API_Keys"}
     APIKeys = {}
+
+class Settings():
+    #Menu system to allow modification of script settings
+    def Menu():
+        while True:
+            MenuSelection = input("\1) Modify tool authentication information \n0) Exit \n Select an option: ")
+
+            if MenuSelection == "1":
+                print("\nModifying API Keys: \n(Press enter to skip)")
+                Settings.ModifyAPIKeys()
+            if MenuSelection == "0":
+                break
+    #Responsible for modification of API details
+    def ModifyAPIKeys():
+        with open(Main.BaseInformation["API_Keys_Directory"]) as API_Directory:
+            Main.APIKeys = json.load(API_Directory)
+        for x in Main.APIKeys:
+            APIValue = input("      [{}:{}]:".format(x, Main.APIKeys[x]))
+            if APIValue == None or APIValue == "":
+                pass
+            else:
+                Main.APIKeys[x] = APIValue
+        with open(Main.BaseInformation["API_Keys_Directory"], "w") as API_Directory:
+            API_Directory.write(json.dumps(Main.APIKeys))
+        print()
 
 class New():
     #Initialises the new project
@@ -47,10 +73,16 @@ class New():
         #Loads the APIKeys
         with open(Main.BaseInformation["API_Keys_Directory"]) as API_Directory:
             Main.APIKeys = json.load(API_Directory)
+            Logging.Log(Main.BaseInformation["LogFile"], "INFO", "Loaded API keys from file.")
+            
+    def OrganisationInformation():
 
 
 print()
 if args.new:
     Main.BaseInformation["OrganisationName"] = args.new
     New.Initialise()
+
+if args.settings:
+    Settings.Menu()
 print()
