@@ -10,7 +10,7 @@ parser = argparse.ArgumentParser(description="----------ThreatHunter-Help-Page--
 
 #Inline Arguments
 parser.add_argument("-new", help="Enter The Target Organisation's Name. \n")
-parser.add_argument("-load", help="Specify The Project File To Load. \n")
+parser.add_argument("-passive", help="Ensures that only passive, non-direct communication to the target. \n", action="store_true")
 parser.add_argument("-settings", help="Modify the application settings. \n", action="store_true")
 
 #Allocates the method to call the arguments to 'args'
@@ -74,14 +74,44 @@ class New():
         with open(Main.BaseInformation["API_Keys_Directory"]) as API_Directory:
             Main.APIKeys = json.load(API_Directory)
             Logging.Log(Main.BaseInformation["LogFile"], "INFO", "Loaded API keys from file.")
-            
-    def OrganisationInformation():
 
+    def OrganisationInformation():
+        Logging.Log(Main.BaseInformation["LogFile"], "INFO", "Starting initial information requests.")
+        InformationStore = {"OrganisationName":Main.BaseInformation["OrganisationName"], "EmailFormat":"", "Domains":"", }
+        print("\nPlease enter any known information: \n(Press enter to skip a section)\n)")
+
+        #Allows the user to specify the email format for the target.
+        while True:
+            EmailFormat = (input("---Email format\n   [Firstname = [FN], Surname = [SN], First Initial = [FI], Surname Initial = [SI]\n   (EG: [FN].[SN]@test.com)\n\n   Email Format:"))
+            if EmailFormat == None or EmailFormat == "":
+                break
+            else:
+                Logging.Log(Main.BaseInformation["LogFile"], "INFO", "{} - Email format set.".format(EmailFormat))
+                InformationStore["EmailFormat"] = EmailFormat
+                break
+
+
+        #Allows the user to specify a file containing known domains
+        while True:
+            DomainList = input("Specify a file containing a list of known domain names: ")
+            try:
+                if os.path.isfile(DomainList):
+                    Logging.Log(Main.BaseInformation["LogFile"], "INFO", "{} - File confirmed to be available.".format(DomainList))
+
+                    with open(DomainList) as DomainListFile:
+                        InformationStore["Domains"] = DomainListFile.read().splitlines()
+                else:
+                    Logging.Log(Main.BaseInformation["LogFile"], "ERROR", "{} - File is inaccessible.".format(DomainList))
+                    print("{} file does not exist or file permissions are preventing access.".format(DomainList))
+            except OSError as Error:
+                Logging.Log(Main.BaseInformation["LogFile"], "ERROR", "{} - File access returns the following error: {}".format(Error))
+                print("A system error has occurred.  You may need to check file permissions to access the file.")
 
 print()
 if args.new:
     Main.BaseInformation["OrganisationName"] = args.new
     New.Initialise()
+    New.OrganisationInformation()
 
 if args.settings:
     Settings.Menu()
