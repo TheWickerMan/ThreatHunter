@@ -78,11 +78,12 @@ class New():
     def OrganisationInformation():
         Logging.Log(Main.BaseInformation["LogFile"], "INFO", "Starting initial information requests.")
         InformationStore = {"OrganisationName":Main.BaseInformation["OrganisationName"], "EmailFormat":"", "Domains":"", }
-        print("\nPlease enter any known information: \n(Press enter to skip a section)\n)")
+        print("\nPlease enter any known information: \n(Press enter to skip a section)\n")
 
         #Allows the user to specify the email format for the target.
         while True:
             EmailFormat = (input("---Email format\n   [Firstname = [FN], Surname = [SN], First Initial = [FI], Surname Initial = [SI]\n   (EG: [FN].[SN]@test.com)\n\n   Email Format:"))
+            print()
             if EmailFormat == None or EmailFormat == "":
                 break
             else:
@@ -93,7 +94,9 @@ class New():
 
         #Allows the user to specify a file containing known domains
         while True:
-            DomainList = input("Specify a file containing a list of known domain names: ")
+            DomainList = input("---Known Domain Names\n   Specify a file containing a list of known domain names: ")
+            if DomainList == "" or DomainList == None:
+                break
             try:
                 if os.path.isfile(DomainList):
                     Logging.Log(Main.BaseInformation["LogFile"], "INFO", "{} - File confirmed to be available.".format(DomainList))
@@ -102,10 +105,10 @@ class New():
                         InformationStore["Domains"] = DomainListFile.read().splitlines()
                 else:
                     Logging.Log(Main.BaseInformation["LogFile"], "ERROR", "{} - File is inaccessible.".format(DomainList))
-                    print("{} file does not exist or file permissions are preventing access.".format(DomainList))
+                    print("{} file does not exist or file permissions are preventing access.\n".format(DomainList))
             except OSError as Error:
                 Logging.Log(Main.BaseInformation["LogFile"], "ERROR", "{} - File access returns the following error: {}".format(Error))
-                print("A system error has occurred.  You may need to check file permissions to access the file.")
+                print("A system error has occurred.  You may need to check file permissions to access the file.\n")
 
 print()
 if args.new:
