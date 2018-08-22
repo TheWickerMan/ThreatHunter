@@ -25,7 +25,7 @@ class Main():
     APIKeys = {}
     ModuleSettings = {}
     GatheredInformation = {}
-    InformationStockpile = {"Domains/IPAddresses":[], "FoundEmailAddresses":"", "GeneratedEmailAddresses":"", "EmailFormat":""}
+    InformationStockpile = {"Domains/IPAddresses":[], "FoundEmailAddresses":"", "GeneratedEmailAddresses":"", "EmailFormat":"", "Certificates":{}}
 
 class Settings():
     #Menu system to allow modification of script settings
@@ -151,12 +151,14 @@ class Run():
     def Passive(OrganisationName):
         PassiveDict = {}
 
+        #CENSYS
         print("\nCommencing Censys Checks...")
         PassiveDict.update({"Censys":Censys.Run(Main.BaseInformation["LogFile"], Main.BaseInformation["API_Keys_Directory"], OrganisationName)})
-        for x in PassiveDict["Censys"]:
+        for x in PassiveDict["Censys"]["IPv4"]:
             if x != None:
                 Main.InformationStockpile["Domains/IPAddresses"].append(x)
-
+        Main.InformationStockpile["Certificates"].update(PassiveDict["Censys"]["Certificates"])
+        print(Main.InformationStockpile)
         return PassiveDict
 
     def Active():
@@ -170,7 +172,7 @@ if args.run:
     Run.Initialise()
     Run.OrganisationInformation()
     RunDictionary.update({"Passive":Run.Passive(Main.BaseInformation["OrganisationName"])})
-    print(Main.InformationStockpile)
+#    print(Main.InformationStockpile)
 
 if args.settings:
     Settings.Menu()

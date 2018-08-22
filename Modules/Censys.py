@@ -8,7 +8,7 @@ from Modules.LoggingModule import Logging
 class Main():
     ConnectionInformation = {"UID":"", "Secret":"", "BaseURL":"", "API Rate Limit":"", "Web Rate Limit":""}
     ModuleSettings = "./Modules/ModuleSettings"
-    GatheredInformation = {}
+    GatheredInformation = {"IPv4":{},"Certificates":{}}
 
     def Initialise(LogFile, API_Keys):
         #Reads API keys from file
@@ -35,8 +35,15 @@ class Main():
         for IP in CensysSearch.search(OrganisationName):
             #Compiles a nested dictionary to store useful information.clear
             TemporaryDictionary = {IP["ip"]: {"Hosting Country":IP["location.country"], "Timezone":IP["location.timezone"], "Postcode":IP["location.postal_code"], "Protocols":IP["protocols"]}}
-            Main.GatheredInformation.update(TemporaryDictionary)
+            Main.GatheredInformation["IPv4"].update(TemporaryDictionary)
             Logging.Log(LogFile, "CENSYS", "INFO", "Compiling {} information".format(IP))
             counter+=1
         Logging.Log(LogFile, "CENSYS", "DEBUG", "Identified {} IPv4 Addresses".format(counter))
+
+        Logging.Log(LogFile, "CENSYS", "INFO", "Requesting Certificate Information")
+        CensysCerts = censys.certificates.CensysCertificates(api_id=Main.ConnectionInformation["UID"], api_secret=Main.ConnectionInformation["Secret"])
+        for Cert in CensysCerts.search(OrganisationName):
+            TemporaryDictionary = {Cert["parsed.subject_dn"]:Cert["parsed.fingerprint_sha256"]}
+            Main.GatheredInformation["Certificates"].update(TemporaryDictionary)
+
         return Main.GatheredInformation
