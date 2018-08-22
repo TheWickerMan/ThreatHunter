@@ -16,4 +16,6 @@ Dependencies:
 pip install requests censys
 ```
 #How to submit log entries
+```
 Logging.Log(Main.BaseInformation["LogFile"], "Level", "Message")
+```
