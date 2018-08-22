@@ -116,6 +116,7 @@ class Run():
             else:
                 Logging.Log(Main.BaseInformation["LogFile"], "THREATHUNTER", "INFO", "{} - Email format set.".format(EmailFormat))
                 InformationStore["EmailFormat"] = EmailFormat
+                Main.InformationStockpile["EmailFormat"] = EmailFormat
                 break
         #Allows the user to specify a file containing known domains
         while True:
