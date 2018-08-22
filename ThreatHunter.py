@@ -1,10 +1,13 @@
 import argparse
 from argparse import RawTextHelpFormatter
-from Modules.LoggingModule import Logging
 import datetime
 import os
 import json
 import re
+
+from Modules.LoggingModule import Logging
+from Modules.Censys import Main as Censys
+
 
 #Header on the help page
 parser = argparse.ArgumentParser(description="----------ThreatHunter-Help-Page----------", formatter_class=RawTextHelpFormatter)
@@ -26,7 +29,6 @@ class Settings():
     def Menu():
         while True:
             MenuSelection = input("\1) Modify tool authentication information \n0) Exit \n Select an option: ")
-
             if MenuSelection == "1":
                 print("\nModifying API Keys: \n(Press enter to skip)")
                 Settings.ModifyAPIKeys()
@@ -69,18 +71,17 @@ class Run():
                 os.makedirs("./Projects/{}/{}".format(CurrentMonth, Main.BaseInformation["OrganisationName"]))
                 print(("Creating \'./Projects/{}/{}\' project.".format(CurrentMonth, Main.BaseInformation["OrganisationName"])))
                 Main.BaseInformation["LogFile"] =  "./Projects/{}/{}/Log".format(CurrentMonth, Main.BaseInformation["OrganisationName"])
-                Logging.Log(Main.BaseInformation["LogFile"], "INFO", "Generated \'{}/{}\' project.".format(CurrentMonth, Main.BaseInformation["OrganisationName"]))
+                Logging.Log(Main.BaseInformation["LogFile"], "THREATHUNTER", "INFO", "Generated \'{}/{}\' project.".format(CurrentMonth, Main.BaseInformation["OrganisationName"]))
                 break
         #Loads the APIKeys
         with open(Main.BaseInformation["API_Keys_Directory"]) as API_Directory:
             Main.APIKeys = json.load(API_Directory)
-            Logging.Log(Main.BaseInformation["LogFile"], "INFO", "Loaded API keys from file.")
+            Logging.Log(Main.BaseInformation["LogFile"], "THREATHUNTER", "INFO", "Loaded API keys from file.")
 
     def OrganisationInformation():
-        Logging.Log(Main.BaseInformation["LogFile"], "INFO", "Starting initial information requests.")
+        Logging.Log(Main.BaseInformation["LogFile"], "THREATHUNTER", "INFO", "Starting initial information requests.")
         InformationStore = {"OrganisationName":Main.BaseInformation["OrganisationName"], "EmailFormat":"", "Domains":[], }
         print("\nPlease enter any known information: \n(Press enter to skip a section)\n")
-
         #Allows the user to specify the email format for the target.
         while True:
             EmailFormat = (input("---Email format\n   [Firstname = [FN], Surname = [SN], First Initial = [FI], Surname Initial = [SI]\n   (EG: [FN].[SN]@test.com)\n\n   Email Format:"))
@@ -88,34 +89,43 @@ class Run():
             if EmailFormat == None or EmailFormat == "":
                 break
             else:
-                Logging.Log(Main.BaseInformation["LogFile"], "INFO", "{} - Email format set.".format(EmailFormat))
+                Logging.Log(Main.BaseInformation["LogFile"], "THREATHUNTER", "INFO", "{} - Email format set.".format(EmailFormat))
                 InformationStore["EmailFormat"] = EmailFormat
                 break
-
         #Allows the user to specify a file containing known domains
         while True:
             DomainList = input("---Known Domain Names\n   Specify a file containing a list of known domain names: ")
             if DomainList == "" or DomainList == None:
-                print(1)
                 break
             try:
                 if os.path.isfile(DomainList):
-                    Logging.Log(Main.BaseInformation["LogFile"], "INFO", "{} - File confirmed to be available.".format(DomainList))
+                    Logging.Log(Main.BaseInformation["LogFile"], "THREATHUNTER", "INFO", "{} - File confirmed to be available.".format(DomainList))
 
                     with open(DomainList) as DomainListFile:
                         ProvidedDomains = DomainListFile.read().splitlines()
+                        Logging.Log(Main.BaseInformation["LogFile"], "THREATHUNTER", "INFO", "{} - File opened".format(DomainListFile))
                     for x in ProvidedDomains:
                         StrippedString = re.sub("(http:\/\/|https:\/\/|www.)", "", x)
+                        Logging.Log(Main.BaseInformation["LogFile"], "THREATHUNTER", "DEBUG", "{}:{} - Stripped unneeded substrings".format(x, StrippedString))
                         InformationStore["Domains"].append(StrippedString)
 
-                    InformationStore["Domains"] = set(InformationStore["Domains"])
+                    #Strips empty values and removes duplicates
+                    InformationStore["Domains"] = set(filter(None, InformationStore["Domains"]))
+                    Logging.Log(Main.BaseInformation["LogFile"], "THREATHUNTER", "DEBUG", "{} - Confirmed that Domain list is unique".format(InformationStore["Domains"]))
                     break
                 else:
-                    Logging.Log(Main.BaseInformation["LogFile"], "ERROR", "{} - File is inaccessible.".format(DomainList))
+                    Logging.Log(Main.BaseInformation["LogFile"], "THREATHUNTER", "ERROR", "{} - File is inaccessible.".format(DomainList))
                     print("{} file does not exist or file permissions are preventing access.\n".format(DomainList))
             except OSError as Error:
-                Logging.Log(Main.BaseInformation["LogFile"], "ERROR", "{} - File access returns the following error: {}".format(Error))
+                Logging.Log(Main.BaseInformation["LogFile"], "THREATHUNTER", "ERROR", "{} - File access returns the following error: {}".format(Error))
                 print("A system error has occurred.  You may need to check file permissions to access the file.\n")
+
+        def Passive():
+            print("Do passive stuff")
+            Censys.Main.Run(Main.BaseInformation["API_Keys_Directory"])
+
+        def Active():
+            print("Do passive stuff")
 
 print()
 if args.run:
