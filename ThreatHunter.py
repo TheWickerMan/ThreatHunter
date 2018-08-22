@@ -25,7 +25,7 @@ class Main():
     APIKeys = {}
     ModuleSettings = {}
     GatheredInformation = {}
-    InformationStockpile = {"Domains/IPAddresses":[]}
+    InformationStockpile = {"Domains/IPAddresses":[], "FoundEmailAddresses":"", "GeneratedEmailAddresses":"", "EmailFormat":""}
 
 class Settings():
     #Menu system to allow modification of script settings
@@ -136,6 +136,8 @@ class Run():
 
                     #Strips empty values and removes duplicates
                     InformationStore["Domains"] = set(filter(None, InformationStore["Domains"]))
+                    for x in (list(InformationStore["Domains"])):
+                        Main.InformationStockpile["Domains/IPAddresses"].append(x)
                     Logging.Log(Main.BaseInformation["LogFile"], "THREATHUNTER", "DEBUG", "{} - Confirmed that Domain list is unique".format(InformationStore["Domains"]))
                     break
                 else:
@@ -167,6 +169,7 @@ if args.run:
     Run.Initialise()
     Run.OrganisationInformation()
     RunDictionary.update({"Passive":Run.Passive(Main.BaseInformation["OrganisationName"])})
+    print(Main.InformationStockpile)
 
 if args.settings:
     Settings.Menu()
