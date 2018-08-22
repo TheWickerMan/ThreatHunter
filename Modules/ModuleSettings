@@ -1,0 +1,5 @@
+{
+	"Censys": {
+		"BaseURL":"https://censys.io/api/v1/search", "API Rate Limit": 120, "Web Rate Limit": 60
+	}
+}
