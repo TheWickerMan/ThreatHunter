@@ -4,12 +4,13 @@ from Modules.LoggingModule import Logging
 import datetime
 import os
 import json
+import re
 
 #Header on the help page
 parser = argparse.ArgumentParser(description="----------ThreatHunter-Help-Page----------", formatter_class=RawTextHelpFormatter)
 
 #Inline Arguments
-parser.add_argument("-new", help="Enter The Target Organisation's Name. \n")
+parser.add_argument("-run", help="Enter The Target Organisation's Name. \n")
 parser.add_argument("-passive", help="Ensures that only passive, non-direct communication to the target. \n", action="store_true")
 parser.add_argument("-settings", help="Modify the application settings. \n", action="store_true")
 
@@ -45,8 +46,8 @@ class Settings():
             API_Directory.write(json.dumps(Main.APIKeys))
         print()
 
-class New():
-    #Initialises the new project
+class Run():
+    #Initialises the  project
     def Initialise():
         #Generates month directory
         CurrentMonth = datetime.date.today().strftime("%B %Y")
@@ -77,7 +78,7 @@ class New():
 
     def OrganisationInformation():
         Logging.Log(Main.BaseInformation["LogFile"], "INFO", "Starting initial information requests.")
-        InformationStore = {"OrganisationName":Main.BaseInformation["OrganisationName"], "EmailFormat":"", "Domains":"", }
+        InformationStore = {"OrganisationName":Main.BaseInformation["OrganisationName"], "EmailFormat":"", "Domains":[], }
         print("\nPlease enter any known information: \n(Press enter to skip a section)\n")
 
         #Allows the user to specify the email format for the target.
@@ -91,18 +92,24 @@ class New():
                 InformationStore["EmailFormat"] = EmailFormat
                 break
 
-
         #Allows the user to specify a file containing known domains
         while True:
             DomainList = input("---Known Domain Names\n   Specify a file containing a list of known domain names: ")
             if DomainList == "" or DomainList == None:
+                print(1)
                 break
             try:
                 if os.path.isfile(DomainList):
                     Logging.Log(Main.BaseInformation["LogFile"], "INFO", "{} - File confirmed to be available.".format(DomainList))
 
                     with open(DomainList) as DomainListFile:
-                        InformationStore["Domains"] = DomainListFile.read().splitlines()
+                        ProvidedDomains = DomainListFile.read().splitlines()
+                    for x in ProvidedDomains:
+                        StrippedString = re.sub("(http:\/\/|https:\/\/|www.)", "", x)
+                        InformationStore["Domains"].append(StrippedString)
+
+                    InformationStore["Domains"] = set(InformationStore["Domains"])
+                    break
                 else:
                     Logging.Log(Main.BaseInformation["LogFile"], "ERROR", "{} - File is inaccessible.".format(DomainList))
                     print("{} file does not exist or file permissions are preventing access.\n".format(DomainList))
@@ -111,10 +118,10 @@ class New():
                 print("A system error has occurred.  You may need to check file permissions to access the file.\n")
 
 print()
-if args.new:
-    Main.BaseInformation["OrganisationName"] = args.new
-    New.Initialise()
-    New.OrganisationInformation()
+if args.run:
+    Main.BaseInformation["OrganisationName"] = args.run
+    Run.Initialise()
+    Run.OrganisationInformation()
 
 if args.settings:
     Settings.Menu()
