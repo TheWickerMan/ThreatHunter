@@ -21,17 +21,42 @@ parser.add_argument("-settings", help="Modify the application settings. \n", act
 args = parser.parse_args()
 
 class Main():
-    BaseInformation = {"OrganisationName":"", "LogFile":"", "API_Keys_Directory":"./Modules/API_Keys"}
+    BaseInformation = {"OrganisationName":"", "LogFile":"", "API_Keys_Directory":"./Modules/API_Keys", "ModuleSettingsDirectory":"./Modules/ModuleSettings"}
     APIKeys = {}
+    ModuleSettings = {}
+    GatheredInformation = {}
+    InformationStockpile = {"Domains/IPAddresses":[]}
 
 class Settings():
     #Menu system to allow modification of script settings
     def Menu():
         while True:
-            MenuSelection = input("\1) Modify tool authentication information \n0) Exit \n Select an option: ")
+            MenuSelection = input("\n1) Modify tool authentication information \n2) Modify tool settings \n0) Exit \n Select an option: ")
             if MenuSelection == "1":
                 print("\nModifying API Keys: \n(Press enter to skip)")
                 Settings.ModifyAPIKeys()
+
+            #Tool Selection
+            if MenuSelection == "2":
+                while True:
+                    ToolSelection = input("\n1) Censys\n0) Back\n")
+
+                    #CENSYS SETTINGS
+                    if ToolSelection == "1":
+                        with open(Main.BaseInformation["ModuleSettingsDirectory"]) as Module_Directory:
+                            Main.ModuleSettings = json.load(Module_Directory)
+                        for x in Main.ModuleSettings["Censys"]:
+                            SettingsValue = input("     [{}:{}]".format(x, Main.ModuleSettings["Censys"][x]))
+                            if SettingsValue == None or SettingsValue == "":
+                                pass
+                            else:
+                                Main.SettingsValue["Censys"][x] = SettingsValue
+                        with open(Main.BaseInformation["ModuleSettingsDirectory"], "w") as Module_Directory:
+                            Module_Directory.write(json.dumps(Main.ModuleSettings))
+
+                    if ToolSelection == "0":
+                        break
+
             if MenuSelection == "0":
                 break
     #Responsible for modification of API details
@@ -120,18 +145,28 @@ class Run():
                 Logging.Log(Main.BaseInformation["LogFile"], "THREATHUNTER", "ERROR", "{} - File access returns the following error: {}".format(Error))
                 print("A system error has occurred.  You may need to check file permissions to access the file.\n")
 
-        def Passive():
-            print("Do passive stuff")
-            Censys.Main.Run(Main.BaseInformation["API_Keys_Directory"])
+    def Passive(OrganisationName):
+        PassiveDict = {}
 
-        def Active():
-            print("Do passive stuff")
+        print("\nCommencing Censys Checks...")
+        PassiveDict.update({"Censys":Censys.Run(Main.BaseInformation["LogFile"], Main.BaseInformation["API_Keys_Directory"], OrganisationName)})
+        for x in PassiveDict["Censys"]:
+            if x != None:
+                Main.InformationStockpile["Domains/IPAddresses"].append(x)
+
+        return PassiveDict
+
+    def Active():
+        print("Do active stuff")
+
 
 print()
 if args.run:
+    RunDictionary = {}
     Main.BaseInformation["OrganisationName"] = args.run
     Run.Initialise()
     Run.OrganisationInformation()
+    RunDictionary.update({"Passive":Run.Passive(Main.BaseInformation["OrganisationName"])})
 
 if args.settings:
     Settings.Menu()
