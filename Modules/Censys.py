@@ -8,7 +8,7 @@ from Modules.LoggingModule import Logging
 class Main():
     ConnectionInformation = {"UID":"", "Secret":"", "BaseURL":"", "API Rate Limit":"", "Web Rate Limit":""}
     ModuleSettings = "./Modules/ModuleSettings"
-    GatheredInformation = {"IPv4":{},"Certificates":{}}
+    GatheredInformation = {"IPv4":{"Tool":"Censys"},"Certificates":{"Tool":"Censys"}}
 
     def Initialise(LogFile, API_Keys):
         #Reads API keys from file
@@ -41,9 +41,7 @@ class Main():
             try:
                 for IP in CensysSearch.search(OrganisationName):
                     #Compiles a nested dictionary to store useful information.clear
-                    #print(IP["ip"])
                     TemporaryDictionary = {IP["ip"]:{}}
-                    #print(TemporaryDictionary)
                     try:
                         TemporaryDictionary[IP["ip"]]["Hosting Country"] = IP["location.country"]
                     except KeyError:
