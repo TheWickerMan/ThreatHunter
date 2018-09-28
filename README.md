@@ -19,3 +19,7 @@ pip install requests censys
 ```
 Logging.Log(Main.BaseInformation["LogFile"], "Level", "Message")
 ```
+## Passive Tools
+
+### Censys
+Used to gather certificates and domains available on the internet.
