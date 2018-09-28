@@ -20,11 +20,11 @@ parser.add_argument("-settings", help="Modify the application settings. \n", act
 args = parser.parse_args()
 
 class Main():
-    BaseInformation = {"OrganisationName":"", "LogFile":"", "API_Keys_Directory":"./Modules/API_Keys", "ModuleSettingsDirectory":"./Modules/ModuleSettings"}
+    BaseInformation = {"ProjectDirectory":"", "OrganisationName":"", "LogFile":"", "API_Keys_Directory":"./Modules/API_Keys", "ModuleSettingsDirectory":"./Modules/ModuleSettings"}
     APIKeys = {}
     ModuleSettings = {}
     GatheredInformation = {}
-    InformationStockpile = {"Domains/IPAddresses":[], "FoundEmailAddresses":"", "GeneratedEmailAddresses":"", "EmailFormat":"", "Certificates":{}}
+    InformationStockpile = {"Domains/IPAddresses":[], "FoundEmailAddresses":"", "GeneratedEmailAddresses":"", "EmailFormat":"", "Certificates":{}, "IPv4":{}}
 
 class Settings():
     #Menu system to allow modification of script settings
@@ -94,6 +94,7 @@ class Run():
                 #Establishes log file and creates the organisation directory
                 os.makedirs("./Projects/{}/{}".format(CurrentMonth, Main.BaseInformation["OrganisationName"]))
                 print(("Creating \'./Projects/{}/{}\' project.".format(CurrentMonth, Main.BaseInformation["OrganisationName"])))
+                Main.BaseInformation["ProjectDirectory"] = "./Projects/{}/{}".format(CurrentMonth, Main.BaseInformation["OrganisationName"])
                 Main.BaseInformation["LogFile"] =  "./Projects/{}/{}/Log".format(CurrentMonth, Main.BaseInformation["OrganisationName"])
                 Logging.Log(Main.BaseInformation["LogFile"], "THREATHUNTER", "INFO", "Generated \'{}/{}\' project.".format(CurrentMonth, Main.BaseInformation["OrganisationName"]))
                 break
@@ -152,7 +153,6 @@ class Run():
 
         #CENSYS
         from Modules.Censys import Main as Censys
-        print(Main.BaseInformation["API_Keys_Directory"])
         print("\nCommencing Censys Checks...")
         PassiveDict.update({"Censys":Censys.Run(Main.BaseInformation["LogFile"], Main.BaseInformation["API_Keys_Directory"], OrganisationName)})
         if PassiveDict["Censys"] != False:
@@ -160,8 +160,7 @@ class Run():
                 if x != None:
                     Main.InformationStockpile["Domains/IPAddresses"].append(x)
             Main.InformationStockpile["Certificates"].update(PassiveDict["Censys"]["Certificates"])
-            Main.InformationStockpile["Certificates"].update(PassiveDict["Censys"]["IPv4"])
-
+            Main.InformationStockpile["IPv4"].update(PassiveDict["Censys"]["IPv4"])
 
         #
         return PassiveDict
@@ -178,7 +177,8 @@ if args.run:
     Run.OrganisationInformation()
     RunDictionary.update({"Passive":Run.Passive(Main.BaseInformation["OrganisationName"])})
     #print(Main.InformationStockpile)
-    FileWrite.Write(Main.BaseInformation["OrganisationName"], Main.InformationStockpile)
+    print("\nWriting to File...")
+    FileWrite.Write(Main.BaseInformation["LogFile"], Main.BaseInformation["ProjectDirectory"], Main.InformationStockpile)
 
 
 if args.settings:
