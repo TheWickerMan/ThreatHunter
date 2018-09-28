@@ -6,8 +6,7 @@ import json
 import re
 
 from Modules.LoggingModule import Logging
-from Modules.Censys import Main as Censys
-
+from Modules.FileWrite import Main as FileWrite
 
 #Header on the help page
 parser = argparse.ArgumentParser(description="----------ThreatHunter-Help-Page----------", formatter_class=RawTextHelpFormatter)
@@ -152,13 +151,19 @@ class Run():
         PassiveDict = {}
 
         #CENSYS
+        from Modules.Censys import Main as Censys
+        print(Main.BaseInformation["API_Keys_Directory"])
         print("\nCommencing Censys Checks...")
         PassiveDict.update({"Censys":Censys.Run(Main.BaseInformation["LogFile"], Main.BaseInformation["API_Keys_Directory"], OrganisationName)})
-        for x in PassiveDict["Censys"]["IPv4"]:
-            if x != None:
-                Main.InformationStockpile["Domains/IPAddresses"].append(x)
-        Main.InformationStockpile["Certificates"].update(PassiveDict["Censys"]["Certificates"])
-        print(Main.InformationStockpile)
+        if PassiveDict["Censys"] != False:
+            for x in PassiveDict["Censys"]["IPv4"]:
+                if x != None:
+                    Main.InformationStockpile["Domains/IPAddresses"].append(x)
+            Main.InformationStockpile["Certificates"].update(PassiveDict["Censys"]["Certificates"])
+            Main.InformationStockpile["Certificates"].update(PassiveDict["Censys"]["IPv4"])
+
+
+        #
         return PassiveDict
 
     def Active():
@@ -172,7 +177,9 @@ if args.run:
     Run.Initialise()
     Run.OrganisationInformation()
     RunDictionary.update({"Passive":Run.Passive(Main.BaseInformation["OrganisationName"])})
-#    print(Main.InformationStockpile)
+    #print(Main.InformationStockpile)
+    FileWrite.Write(Main.BaseInformation["OrganisationName"], Main.InformationStockpile)
+
 
 if args.settings:
     Settings.Menu()
