@@ -44,35 +44,36 @@ class Main():
                     TemporaryDictionary = {IP["ip"]:{}}
                     try:
                         TemporaryDictionary[IP["ip"]]["Hosting Country"] = IP["location.country"]
-                    except KeyError:
-                        print(KeyError)
+                    except KeyError as e:
+                        Logging.Log(Logfile, "CENSYS", "INFO", "Missing \'{}\' value.".format(e))
                         continue
 
                     try:
                         if IP["location.timezone"]:
                             TemporaryDictionary[IP["ip"]]["Timezone"] = IP["location.timezone"]
-                    except KeyError:
-                        print(KeyError)
+                    except KeyError as e:
+                        Logging.Log(Logfile, "CENSYS", "INFO", "Missing \'{}\' value.".format(e))
                         continue
                     try:
                         if IP["location.postal_code"]:
                             TemporaryDictionary[IP["ip"]]["Postcode"] = IP["location.postal_code"]
-                    except KeyError:
-                        print(KeyError)
+                    except KeyError as e:
+                        Logging.Log(Logfile, "CENSYS", "INFO", "Missing \'{}\' value.".format(e))
                         continue
                     try:
                         if IP["protocols"]:
                             TemporaryDictionary[IP["ip"]]["Protocols"] = IP["protocols"]
-                    except KeyError:
-                        print(KeyError)
+                    except KeyError as e:
+                        Logging.Log(Logfile, "CENSYS", "INFO", "Missing \'{}\' value.".format(e))
                         continue
                     Main.GatheredInformation["IPv4"].update(TemporaryDictionary)
                     Logging.Log(LogFile, "CENSYS", "INFO", "Compiling {} information".format(IP))
                     counter+=1
             except Exception as CensysError:
-                if "upgrade your Censys account" in CensysError:
-                    print("     Maximum depth search reached with account provided.")
-                    Logging.Log(LogFile, "CENSYS", "INFO", "Maximum depth has been reached while searching the target using the API details provided.")
+                if isinstance(CensysError, str):
+                    if "upgrade your Censys account" in CensysError:
+                        print("     Maximum depth search reached with account provided.")
+                        Logging.Log(LogFile, "CENSYS", "INFO", "Maximum depth has been reached while searching the target using the API details provided.")
                 pass
 
 
@@ -82,22 +83,25 @@ class Main():
             try:
                 CensysCerts = censys.certificates.CensysCertificates(api_id=Main.ConnectionInformation["UID"], api_secret=Main.ConnectionInformation["Secret"])
             except Exception as CensysError:
-                if "upgrade your Censys account" in str(CensysError):
-                    print("     Maximum depth search reached with account provided.")
-                    Logging.Log(LogFile, "CENSYS", "INFO", "Maximum depth has been reached while searching the target using the API details provided.")
+                if isinstance(CensysError, str):
+                    if "upgrade your Censys account" in CensysError:
+                        print("     Maximum depth search reached with account provided.")
+                        Logging.Log(LogFile, "CENSYS", "INFO", "Maximum depth has been reached while searching the target using the API details provided.")
                 pass
 
             try:
                 for Cert in CensysCerts.search(OrganisationName):
                     try:
                         TemporaryDictionary = {Cert["parsed.subject_dn"]:Cert["parsed.fingerprint_sha256"]}
-                    except KeyError:
+                    except KeyError as e:
+                        Logging.Log(Logfile, "CENSYS", "INFO", "Missing \'{}\' value.".format(e))
                         continue
                     Main.GatheredInformation["Certificates"].update(TemporaryDictionary)
             except Exception as CensysError:
-                if "upgrade your Censys account" in str(CensysError):
-                    print("     Maximum depth search reached with account provided.")
-                    Logging.Log(LogFile, "CENSYS", "INFO", "Maximum depth has been reached while searching the target using the API details provided.")
+                if isinstance(CensysError, str):
+                    if "upgrade your Censys account" in CensysError:
+                        print("     Maximum depth search reached with account provided.")
+                        Logging.Log(LogFile, "CENSYS", "INFO", "Maximum depth has been reached while searching the target using the API details provided.")
                 pass
 
             return Main.GatheredInformation
