@@ -15,11 +15,11 @@ class Main():
         with open(API_Keys) as API_Directory:
             LoadedAPI = json.load(API_Directory)
             Logging.Log(LogFile, "CENSYS", "INFO", "Loaded API keys")
-        if LoadedAPI["Censys"]["UID"] == "" or LoadedAPI["Censys"]["Secret"] == "":
+        if LoadedAPI["Censys API ID"] == "" or LoadedAPI["Censys Secret"] == "":
             Logging.Log(LogFile, "CENSYS", "ERROR", "No Censys keys provided. Returning to main application.")
             return False
-        Main.ConnectionInformation["UID"] = LoadedAPI["Censys"]["UID"]
-        Main.ConnectionInformation["Secret"] = LoadedAPI["Censys"]["Secret"]
+        Main.ConnectionInformation["UID"] = LoadedAPI["Censys API ID"]
+        Main.ConnectionInformation["Secret"] = LoadedAPI["Censys Secret"]
 
         #Reads Module Settings
         with open(Main.ModuleSettings) as ModuleSettingsDirectory:
